@@ -6,7 +6,7 @@
 
 O BioAI é uma aplicação web desenvolvida para auxiliar no planejamento e manejo de sistemas agroflorestais, com foco especial na biodiversidade amazônica. Utilizando o poder dos modelos de linguagem avançados do Google (Gemini), esta ferramenta gera cronogramas de cultivo personalizados, sugere parcerias benéficas entre plantas e fornece visualizações interativas para facilitar o acompanhamento.
 
-O projeto foi criado para enfrentar o desafio de restaurar matas ciliares e combater o assoreamento dos rios, promovendo ao mesmo tempo a geração de renda e a sustentabilidade para as comunidades locais.
+Uma Ferramenta para Apoiar a regeneração das margens de igarapés contribuindo com a economia local e gerando fartura para a comunidade.
 
 ## Funcionalidades Principais
 
