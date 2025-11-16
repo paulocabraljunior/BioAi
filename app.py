@@ -29,6 +29,9 @@ translations = {
     "pt": {
         "api_key": "Chave da API do Google Gemini",
         "gemini_model": "Escolha o modelo Gemini",
+        "area_size": "Tamanho da área (em hectares)",
+        "location": "Localização (cidade/estado)",
+        "harvest_time": "Tempo esperado de colheita (em meses)",
         "request": "Descreva sua solicitação",
         "generate_schedule": "Gerar Cronograma",
         "schedule_title": "Cronograma de Cultivo Gerado",
@@ -42,6 +45,9 @@ translations = {
     "es": {
         "api_key": "Clave de API de Google Gemini",
         "gemini_model": "Elige el modelo Gemini",
+        "area_size": "Tamaño del área (en hectáreas)",
+        "location": "Ubicación (ciudad/estado)",
+        "harvest_time": "Tiempo de cosecha esperado (en meses)",
         "request": "Describe tu solicitud",
         "generate_schedule": "Generar Calendario",
         "schedule_title": "Calendario de Cultivo Generado",
@@ -55,6 +61,9 @@ translations = {
     "en": {
         "api_key": "Google Gemini API Key",
         "gemini_model": "Choose the Gemini model",
+        "area_size": "Area size (in hectares)",
+        "location": "Location (city/state)",
+        "harvest_time": "Expected harvest time (in months)",
         "request": "Describe your request",
         "generate_schedule": "Generate Schedule",
         "schedule_title": "Generated Cultivation Schedule",
@@ -78,6 +87,10 @@ t = translations[st.session_state.language]
 # API Key and Gemini Model selection
 api_key = st.text_input(t["api_key"], type="password")
 gemini_model = st.selectbox(t["gemini_model"], ["gemini-pro", "gemini-1.0-pro", "gemini-1.5-flash", "gemini-1.5-pro"])
+area_size = st.text_input(t["area_size"])
+location = st.text_input(t["location"])
+harvest_time = st.text_input(t["harvest_time"])
+
 
 # User request
 user_request = st.text_area(t["request"])
@@ -93,7 +106,7 @@ def load_data():
         st.error(f"Erro ao carregar data.csv: {e}")
         return None
 
-def generate_schedule(api_key, gemini_model, user_request, df):
+def generate_schedule(api_key, gemini_model, user_request, df, area_size, location, harvest_time):
     try:
         genai.configure(api_key=api_key)
         model = genai.GenerativeModel(gemini_model)
@@ -109,6 +122,11 @@ def generate_schedule(api_key, gemini_model, user_request, df):
         2.  **Cronograma de Cultivo:** Uma tabela Markdown **EXATAMENTE** com as seguintes colunas: `Atividade`, `Planta`, `Início`, `Fim`.
             *   As datas de `Início` e `Fim` **DEVEM** estar no formato `YYYY-MM-DD`.
             *   **NÃO** inclua a linha de separador do Markdown (`|---|---|...`).
+
+        **Dados Adicionais:**
+        *   Tamanho da área: {area_size} hectares
+        *   Localização: {location}
+        *   Tempo esperado de colheita: {harvest_time} meses
 
         **Conjunto de Dados:**
         ```
@@ -183,7 +201,7 @@ if st.button(t["generate_schedule"]):
     else:
         df = load_data()
         if df is not None:
-            response_text = generate_schedule(api_key, gemini_model, user_request, df)
+            response_text = generate_schedule(api_key, gemini_model, user_request, df, area_size, location, harvest_time)
             if response_text:
                 st.subheader(t["schedule_title"])
                 st.markdown(response_text)
