@@ -130,6 +130,11 @@ def generate_schedule(api_key, gemini_model, user_request, df, area_size, locati
         *   Localização: {location}
         *   Tempo esperado de colheita: {harvest_time} meses
 
+        **Dados Adicionais:**
+        *   Tamanho da área: {area_size} hectares
+        *   Localização: {location}
+        *   Tempo esperado de colheita: {harvest_time} meses
+
         **Conjunto de Dados:**
         ```
         {df.to_string()}
