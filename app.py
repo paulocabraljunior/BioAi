@@ -29,6 +29,9 @@ translations = {
     "pt": {
         "api_key": "Chave da API do Google Gemini",
         "gemini_model": "Escolha o modelo Gemini",
+        "area_size": "Tamanho da área (em hectares)",
+        "location": "Localização (cidade/estado)",
+        "harvest_time": "Tempo esperado de colheita (em meses)",
         "request": "Descreva sua solicitação",
         "generate_schedule": "Gerar Cronograma",
         "schedule_title": "Cronograma de Cultivo Gerado",
@@ -41,7 +44,10 @@ translations = {
     },
     "es": {
         "api_key": "Clave de API de Google Gemini",
-        "gemini_model": "Elige el modelo Gemini",
+        "gemini_model": "Elige o modelo Gemini",
+        "area_size": "Tamaño del área (en hectáreas)",
+        "location": "Ubicación (ciudad/estado)",
+        "harvest_time": "Tiempo de cosecha esperado (en meses)",
         "request": "Describe tu solicitud",
         "generate_schedule": "Generar Calendario",
         "schedule_title": "Calendario de Cultivo Generado",
@@ -55,6 +61,9 @@ translations = {
     "en": {
         "api_key": "Google Gemini API Key",
         "gemini_model": "Choose the Gemini model",
+        "area_size": "Area size (in hectares)",
+        "location": "Location (city/state)",
+        "harvest_time": "Expected harvest time (in months)",
         "request": "Describe your request",
         "generate_schedule": "Generate Schedule",
         "schedule_title": "Generated Cultivation Schedule",
@@ -78,6 +87,10 @@ t = translations[st.session_state.language]
 # API Key and Gemini Model selection
 api_key = st.text_input(t["api_key"], type="password")
 gemini_model = st.selectbox(t["gemini_model"], ["gemini-pro", "gemini-1.0-pro", "gemini-1.5-flash", "gemini-1.5-pro"])
+area_size = st.text_input(t["area_size"])
+location = st.text_input(t["location"])
+harvest_time = st.text_input(t["harvest_time"])
+
 
 # User request
 user_request = st.text_area(t["request"])
@@ -93,7 +106,7 @@ def load_data():
         st.error(f"Erro ao carregar data.csv: {e}")
         return None
 
-def generate_schedule(api_key, gemini_model, user_request, df):
+def generate_schedule(api_key, gemini_model, user_request, df, area_size, location, harvest_time):
     try:
         genai.configure(api_key=api_key)
         model = genai.GenerativeModel(gemini_model)
@@ -104,11 +117,18 @@ def generate_schedule(api_key, gemini_model, user_request, df):
         **Tarefa:**
         Com base nos dados fornecidos e na solicitação do usuário, crie um cronograma de cultivo detalhado e sugira parcerias entre plantas.
 
-        **Formato de Saída OBRIGATÓRIO (use Markdown):**
+        **Formato de Saída OBRIGATÓRIO (use CSV):**
         1.  **Parcerias Recomendadas:** Uma breve análise das parcerias de plantas.
-        2.  **Cronograma de Cultivo:** Uma tabela Markdown **EXATAMENTE** com as seguintes colunas: `Atividade`, `Planta`, `Início`, `Fim`.
-            *   As datas de `Início` e `Fim` **DEVEM** estar no formato `YYYY-MM-DD`.
-            *   **NÃO** inclua a linha de separador do Markdown (`|---|---|...`).
+        2.  **Cronograma de Cultivo:** Um bloco de código CSV com as colunas: `Atividade`, `Planta`, `Início`, `Fim`.
+        3.  **Desenvolvimento dos Cultivos:** Um bloco de código CSV com as colunas: `Planta`, `Estágio`, `Duração (dias)`.
+        4.  **Probabilidade de Rendimento:** Um bloco de código CSV com as colunas: `Planta`, `Probabilidade (%)`, `Fatores`.
+        5.  **Previsão de Produção:** Um bloco de código CSV com as colunas: `Planta`, `Produção (kg/hectare)`.
+        6.  **Regeneração do Solo:** Um bloco de código CSV com as colunas: `Indicador`, `Valor Inicial`, `Valor Final`.
+
+        **Dados Adicionais:**
+        *   Tamanho da área: {area_size} hectares
+        *   Localização: {location}
+        *   Tempo esperado de colheita: {harvest_time} meses
 
         **Conjunto de Dados:**
         ```
@@ -129,26 +149,13 @@ def generate_schedule(api_key, gemini_model, user_request, df):
 def parse_and_display_chart(response_text):
     st.subheader(t["chart_title"])
     try:
-        # Use regex to find the markdown table
-        table_match = re.search(r"\| Atividade.*\|.*\n((?:\|.*\|.*\n)+)", response_text, re.MULTILINE)
-        if not table_match:
+        # Use a more robust regex to find the CSV block, making the language identifier optional
+        csv_match = re.search(r"Cronograma de Cultivo:\s*```(?:csv)?\s*\n(.*?)\n```", response_text, re.DOTALL)
+        if not csv_match:
             st.warning(t["chart_warning"])
             return
 
-        table_str = table_match.group(1)
-        # Clean up the table string by processing each line
-        lines = table_str.strip().split('\n')
-        csv_lines = ["Atividade,Planta,Início,Fim"]
-        for line in lines:
-            if line.strip():
-                # Split by pipe, remove leading/trailing whitespace from each part, and join with commas
-                parts = [part.strip() for part in line.split('|')]
-                # Filter out empty parts that result from leading/trailing pipes
-                parts = [part for part in parts if part]
-                if len(parts) == 4:
-                    csv_lines.append(",".join(parts))
-
-        csv_data = "\n".join(csv_lines)
+        csv_data = csv_match.group(1)
         schedule_df = pd.read_csv(StringIO(csv_data))
 
         # Data validation
@@ -173,6 +180,120 @@ def parse_and_display_chart(response_text):
         st.warning(f"{t['chart_generation_warning']} {e}")
 
 
+def parse_and_display_development_chart(response_text):
+    st.subheader("Desenvolvimento dos Cultivos")
+    try:
+        csv_match = re.search(r"Desenvolvimento dos Cultivos:\s*```(?:csv)?\s*\n(.*?)\n```", response_text, re.DOTALL)
+        if not csv_match:
+            st.warning("Não foi possível encontrar dados de desenvolvimento dos cultivos na resposta.")
+            return
+
+        csv_data = csv_match.group(1)
+        df = pd.read_csv(StringIO(csv_data))
+
+        if not all(col in df.columns for col in ["Planta", "Estágio", "Duração (dias)"]):
+            st.warning("A tabela de desenvolvimento dos cultivos não tem as colunas esperadas.")
+            return
+
+        chart = alt.Chart(df).mark_bar().encode(
+            x='sum(Duração (dias))',
+            y='Planta',
+            color='Estágio'
+        ).properties(
+            title="Fases de Desenvolvimento dos Cultivos"
+        )
+        st.altair_chart(chart, use_container_width=True)
+
+    except Exception as e:
+        st.warning(f"Não foi possível gerar o gráfico de desenvolvimento: {e}")
+
+
+def parse_and_display_yield_chart(response_text):
+    st.subheader("Probabilidade de Rendimento")
+    try:
+        csv_match = re.search(r"Probabilidade de Rendimento:\s*```(?:csv)?\s*\n(.*?)\n```", response_text, re.DOTALL)
+        if not csv_match:
+            st.warning("Não foi possível encontrar dados de probabilidade de rendimento na resposta.")
+            return
+
+        csv_data = csv_match.group(1)
+        df = pd.read_csv(StringIO(csv_data))
+
+        if not all(col in df.columns for col in ["Planta", "Probabilidade (%)", "Fatores"]):
+            st.warning("A tabela de probabilidade de rendimento não tem as colunas esperadas.")
+            return
+
+        chart = alt.Chart(df).mark_bar().encode(
+            x='Probabilidade (%)',
+            y='Planta',
+            tooltip=['Fatores']
+        ).properties(
+            title="Probabilidade de Rendimento por Cultura"
+        )
+        st.altair_chart(chart, use_container_width=True)
+
+    except Exception as e:
+        st.warning(f"Não foi possível gerar o gráfico de probabilidade de rendimento: {e}")
+
+
+def parse_and_display_production_chart(response_text):
+    st.subheader("Previsão de Produção")
+    try:
+        csv_match = re.search(r"Previsão de Produção:\s*```(?:csv)?\s*\n(.*?)\n```", response_text, re.DOTALL)
+        if not csv_match:
+            st.warning("Não foi possível encontrar dados de previsão de produção na resposta.")
+            return
+
+        csv_data = csv_match.group(1)
+        df = pd.read_csv(StringIO(csv_data))
+
+        if not all(col in df.columns for col in ["Planta", "Produção (kg/hectare)"]):
+            st.warning("A tabela de previsão de produção não tem as colunas esperadas.")
+            return
+
+        chart = alt.Chart(df).mark_bar().encode(
+            x='Produção (kg/hectare)',
+            y='Planta'
+        ).properties(
+            title="Previsão de Produção por Cultura"
+        )
+        st.altair_chart(chart, use_container_width=True)
+
+    except Exception as e:
+        st.warning(f"Não foi possível gerar o gráfico de previsão de produção: {e}")
+
+
+def parse_and_display_soil_chart(response_text):
+    st.subheader("Regeneração do Solo")
+    try:
+        csv_match = re.search(r"Regeneração do Solo:\s*```(?:csv)?\s*\n(.*?)\n```", response_text, re.DOTALL)
+        if not csv_match:
+            st.warning("Não foi possível encontrar dados de regeneração do solo na resposta.")
+            return
+
+        csv_data = csv_match.group(1)
+        df = pd.read_csv(StringIO(csv_data))
+
+        if not all(col in df.columns for col in ["Indicador", "Valor Inicial", "Valor Final"]):
+            st.warning("A tabela de regeneração do solo não tem as colunas esperadas.")
+            return
+
+        df_melted = df.melt(id_vars=['Indicador'], value_vars=['Valor Inicial', 'Valor Final'],
+                            var_name='Estágio', value_name='Valor')
+
+        chart = alt.Chart(df_melted).mark_bar().encode(
+            x='Indicador',
+            y='Valor',
+            color='Estágio'
+        ).properties(
+            title="Previsão de Regeneração do Solo"
+        )
+        st.altair_chart(chart, use_container_width=True)
+
+    except Exception as e:
+        st.warning(f"Não foi possível gerar o gráfico de regeneração do solo: {e}")
+
+
 # --- Button Logic ---
 
 if st.button(t["generate_schedule"]):
@@ -183,8 +304,12 @@ if st.button(t["generate_schedule"]):
     else:
         df = load_data()
         if df is not None:
-            response_text = generate_schedule(api_key, gemini_model, user_request, df)
+            response_text = generate_schedule(api_key, gemini_model, user_request, df, area_size, location, harvest_time)
             if response_text:
                 st.subheader(t["schedule_title"])
                 st.markdown(response_text)
                 parse_and_display_chart(response_text)
+                parse_and_display_development_chart(response_text)
+                parse_and_display_yield_chart(response_text)
+                parse_and_display_production_chart(response_text)
+                parse_and_display_soil_chart(response_text)
