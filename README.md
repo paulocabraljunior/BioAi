@@ -4,17 +4,22 @@
 
 ## Visão Geral
 
-O BioAI é uma aplicação web desenvolvida para auxiliar no planejamento e manejo de sistemas agroflorestais, com foco especial na biodiversidade amazônica. Utilizando o poder dos modelos de linguagem avançados do Google (Gemini), esta ferramenta gera cronogramas de cultivo personalizados, sugere parcerias benéficas entre plantas e fornece visualizações interativas para facilitar o acompanhamento.
+O BioAI é uma aplicação web de código aberto projetada para apoiar o planejamento e manejo de sistemas agroflorestais, com um foco especial na rica biodiversidade da Amazônia. Utilizando o poder dos modelos de linguagem avançados do Google, como o **Gemini**, esta ferramenta capacita agricultores, comunidades locais e pesquisadores a criar ecossistemas sustentáveis e produtivos.
 
-Uma Ferramenta para Apoiar a regeneração das margens de igarapés contribuindo com a economia local e gerando fartura para a comunidade.
+A aplicação foi desenvolvida para ser uma ferramenta de apoio à regeneração de áreas degradadas, como margens de igarapés, contribuindo para a economia local e gerando segurança alimentar para a comunidade.
 
 ## Funcionalidades Principais
 
-*   **Geração de Cronograma com IA:** Utilize o Google Gemini para criar cronogramas de cultivo detalhados com base em suas necessidades e nas características das plantas amazônicas.
-*   **Sugestões de Parceria de Plantas:** Receba recomendações inteligentes sobre quais plantas crescem bem juntas, otimizando o uso da terra e promovendo um ecossistema saudável.
+*   **Geração de Cronograma com IA:** Crie cronogramas de cultivo detalhados e personalizados com base em suas necessidades, no tamanho da área, na localização e no tempo de colheita esperado.
+*   **Análises Preditivas:** Além do cronograma, o BioAI é capaz de gerar análises gráficas sobre:
+    *   **Desenvolvimento dos Cultivos:** Acompanhe as fases de crescimento de cada planta.
+    *   **Probabilidade de Rendimento:** Obtenha estimativas sobre a produtividade da sua colheita.
+    *   **Previsão de Produção:** Calcule a produção esperada com base na área plantada.
+    *   **Regeneração do Solo:** Receba uma previsão sobre a melhoria da saúde do solo com base nos cultivos selecionados.
+*   **Sugestões de Parceria de Plantas:** Receba recomendações inteligentes sobre quais plantas crescem bem juntas, otimizando o uso da terra e promovendo um ecossistema saudável e resiliente.
 *   **Visualização Interativa:** Visualize seu cronograma de cultivo em um gráfico de Gantt interativo, facilitando o acompanhamento das atividades ao longo do tempo.
-*   **Suporte Multilíngue:** A interface está disponível em português, espanhol e inglês, tornando-a acessível a um público global.
-*   **Configuração Flexível:** Insira sua própria chave de API do Google Gemini e escolha o modelo que melhor se adapta às suas necessidades.
+*   **Compatibilidade com Gemini Free Tier:** A ferramenta é totalmente funcional com o nível gratuito da API do Google Gemini, tornando-a acessível a todos.
+*   **Suporte Multilíngue:** A interface está disponível em português, espanhol e inglês.
 
 ## Como Executar o Projeto Localmente
 
@@ -33,10 +38,16 @@ Siga estas instruções para configurar e executar o BioAI em seu ambiente de de
     cd BioAi
     ```
 
-2.  **Instale as dependências:**
-    Crie e ative um ambiente virtual (recomendado) e instale as bibliotecas necessárias.
+2.  **Crie e ative um ambiente virtual (recomendado):**
     ```bash
-    pip install streamlit pandas google-generativeai altair
+    python -m venv venv
+    source venv/bin/activate  # No Windows, use `venv\Scripts\activate`
+    ```
+
+3.  **Instale as dependências:**
+    O arquivo `requirements.txt` contém todas as bibliotecas necessárias com suas versões exatas para garantir a estabilidade.
+    ```bash
+    pip install -r requirements.txt
     ```
 
 ### Execução
@@ -52,14 +63,8 @@ Siga estas instruções para configurar e executar o BioAI em seu ambiente de de
 
 ## Arquitetura do Código
 
-O projeto é construído como um aplicativo de página única usando o Streamlit, com a seguinte estrutura:
+O projeto é construído como um aplicativo de página única usando o Streamlit.
 
-*   **`app.py`:** Este é o arquivo principal que contém toda a lógica do aplicativo.
-    *   **Interface do Usuário (UI):** O código configura o título, a descrição, os botões de seleção de idioma e os campos de entrada para a chave da API e a solicitação do usuário.
-    *   **Lógica de Negócios:** Inclui funções para:
-        *   Carregar e armazenar em cache os dados das plantas do arquivo `data.csv`.
-        *   Construir um prompt detalhado para a API Gemini, incorporando os dados e a solicitação do usuário.
-        *   Chamar a API Gemini para gerar o cronograma e as sugestões.
-        *   Analisar a resposta do modelo e converter a tabela de cronograma em um DataFrame do Pandas.
-        *   Gerar e exibir um gráfico de Gantt interativo usando a biblioteca Altair.
-*   **`data.csv`:** Um arquivo CSV delimitado por ponto e vírgula que contém o conjunto de dados de plantas amazônicas, incluindo nomes, ciclos de vida, parceiras recomendadas e outras informações relevantes.
+*   **`app.py`:** O arquivo principal que contém toda a lógica da aplicação, desde a interface do usuário até a comunicação com a API do Gemini.
+*   **`data.csv`:** Um arquivo CSV que contém o conjunto de dados de plantas amazônicas, servindo como base de conhecimento para a IA.
+*   **`requirements.txt`:** Lista todas as dependências do projeto com suas versões fixadas, garantindo uma instalação consistente.
