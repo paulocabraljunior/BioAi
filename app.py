@@ -8,10 +8,6 @@ import re
 # Page configuration
 st.set_page_config(page_title="BioAI", layout="wide")
 
-# Title and description
-st.title("BioAI: Cronograma de Cultivo Inteligente")
-st.markdown("Esta ferramenta utiliza a IA do Google Gemini para gerar um cronograma de cultivo personalizado com base em suas necessidades.")
-
 # Language selection
 col1, col2, col3 = st.columns(3)
 with col1:
@@ -27,6 +23,8 @@ with col3:
 # Translations
 translations = {
     "pt": {
+        "title": "BioAI: Cronograma de Cultivo Inteligente",
+        "description": "Esta ferramenta utiliza a IA do Google Gemini para gerar um cronograma de cultivo personalizado com base em suas necessidades.",
         "api_key": "Chave da API do Google Gemini",
         "gemini_model": "Escolha o modelo Gemini",
         "area_size": "Tamanho da área (em hectares)",
@@ -43,6 +41,8 @@ translations = {
         "chart_generation_warning": "Não foi possível gerar o gráfico a partir da resposta:"
     },
     "es": {
+        "title": "BioAI: Calendario de Cultivo Inteligente",
+        "description": "Esta herramienta utiliza la IA de Google Gemini para generar un calendario de cultivo personalizado basado en tus necesidades.",
         "api_key": "Clave de API de Google Gemini",
         "gemini_model": "Elige o modelo Gemini",
         "area_size": "Tamaño del área (en hectáreas)",
@@ -59,6 +59,8 @@ translations = {
         "chart_generation_warning": "No se pudo generar el gráfico a partir de la respuesta:"
     },
     "en": {
+        "title": "BioAI: Smart Cultivation Schedule",
+        "description": "This tool uses Google's Gemini AI to generate a personalized cultivation schedule based on your needs.",
         "api_key": "Google Gemini API Key",
         "gemini_model": "Choose the Gemini model",
         "area_size": "Area size (in hectares)",
@@ -82,6 +84,10 @@ if "language" not in st.session_state:
 
 # Get translated text
 t = translations[st.session_state.language]
+
+# Title and description
+st.title(t["title"])
+st.markdown(t["description"])
 
 
 # API Key and Gemini Model selection
