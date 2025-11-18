@@ -4,6 +4,7 @@ import google.generativeai as genai
 import altair as alt
 from io import StringIO
 import re
+import csv
 
 # Page configuration
 st.set_page_config(page_title="BioAI", layout="wide")
@@ -24,6 +25,7 @@ with col3:
 translations = {
     "pt": {
         "title": "BioAI: Agrofloresta Inteligente",
+        "description": "Esta ferramenta utiliza a IA do Google Gemini para gerar uma Agrofloresta específica para o bioma Amazônico.",
         "description": "Esta ferramenta utiliza a IA do Google O Gemini para gerar uma Agrofloresta específica para o bioma Amazônico",
         "api_key": "Chave da API do Google Gemini",
         "gemini_model": "Escolha o modelo Gemini",
@@ -44,7 +46,7 @@ translations = {
         "title": "BioAI: Agroforestería Inteligente",
         "description": "Esta herramienta utiliza la IA de Google O Gemini para generar una Agroforestería específica para el bioma Amazónico",
         "api_key": "Clave de API de Google Gemini",
-        "gemini_model": "Elige o modelo Gemini",
+        "gemini_model": "Elige el modelo Gemini",
         "area_size": "Tamaño del área (en hectáreas)",
         "location": "Ubicación (ciudad/estado)",
         "harvest_time": "Tiempo de cosecha esperado (en meses)",
@@ -106,7 +108,7 @@ user_request = st.text_area(t["request"])
 @st.cache_data
 def load_data():
     try:
-        df = pd.read_csv("data.csv", sep=";")
+        df = pd.read_csv("data.csv", sep=";", quoting=csv.QUOTE_ALL)
         return df
     except Exception as e:
         st.error(f"Erro ao carregar data.csv: {e}")
@@ -130,11 +132,6 @@ def generate_schedule(api_key, gemini_model, user_request, df, area_size, locati
         4.  **Probabilidade de Rendimento:** Um bloco de código CSV com as colunas: `Planta`, `Probabilidade (%)`, `Fatores`.
         5.  **Previsão de Produção:** Um bloco de código CSV com as colunas: `Planta`, `Produção (kg/hectare)`.
         6.  **Regeneração do Solo:** Um bloco de código CSV com as colunas: `Indicador`, `Valor Inicial`, `Valor Final`.
-
-        **Dados Adicionais:**
-        *   Tamanho da área: {area_size} hectares
-        *   Localização: {location}
-        *   Tempo esperado de colheita: {harvest_time} meses
 
         **Dados Adicionais:**
         *   Tamanho da área: {area_size} hectares
