@@ -23,8 +23,8 @@ with col3:
 # Translations
 translations = {
     "pt": {
-        "title": "BioAI: Cronograma de Cultivo Inteligente",
-        "description": "Esta ferramenta utiliza a IA do Google Gemini para gerar um cronograma de cultivo personalizado com base em suas necessidades.",
+        "title": "BioAI: Agrofloresta Inteligente",
+        "description": "Esta ferramenta utiliza a IA do Google Gemini para gerar uma Agrofloresta específica para o bioma Amazônico",
         "api_key": "Chave da API do Google Gemini",
         "gemini_model": "Escolha o modelo Gemini",
         "area_size": "Tamanho da área (em hectares)",
