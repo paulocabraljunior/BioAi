@@ -26,6 +26,7 @@ translations = {
     "pt": {
         "title": "BioAI: Agrofloresta Inteligente",
         "description": "Esta ferramenta utiliza a IA do Google Gemini para gerar uma Agrofloresta específica para o bioma Amazônico.",
+        "description": "Esta ferramenta utiliza a IA do Google O Gemini para gerar uma Agrofloresta específica para o bioma Amazônico",
         "api_key": "Chave da API do Google Gemini",
         "gemini_model": "Escolha o modelo Gemini",
         "area_size": "Tamanho da área (em hectares)",
@@ -43,7 +44,7 @@ translations = {
     },
     "es": {
         "title": "BioAI: Agroforestería Inteligente",
-        "description": "Esta herramienta utiliza la IA de Google Gemini para generar una Agroforestería específica para el bioma Amazónico.",
+        "description": "Esta herramienta utiliza la IA de Google O Gemini para generar una Agroforestería específica para el bioma Amazónico",
         "api_key": "Clave de API de Google Gemini",
         "gemini_model": "Elige el modelo Gemini",
         "area_size": "Tamaño del área (en hectáreas)",
@@ -61,7 +62,7 @@ translations = {
     },
     "en": {
         "title": "BioAI: Smart Agroforestry",
-        "description": "This tool uses Google's Gemini AI to generate a specific Agroforestry for the Amazon biome.",
+        "description": "This tool uses Google's Gemini AI to generate a specific Agroforestry for the Amazon biome",
         "api_key": "Google Gemini API Key",
         "gemini_model": "Choose the Gemini model",
         "area_size": "Area size (in hectares)",
@@ -93,14 +94,7 @@ st.markdown(t["description"])
 
 # API Key and Gemini Model selection
 api_key = st.text_input(t["api_key"], type="password")
-model_options = {
-    "gemini-pro": "gemini-pro",
-    "gemini-1.0-pro": "gemini-1.0-pro",
-    "gemini-1.5-flash (Free Tier)": "gemini-1.5-flash",
-    "gemini-1.5-pro": "gemini-1.5-pro"
-}
-gemini_model_display = st.selectbox(t["gemini_model"], list(model_options.keys()))
-gemini_model = model_options[gemini_model_display]
+gemini_model = st.selectbox(t["gemini_model"], ["gemini-pro", "gemini-1.0-pro", "gemini-1.5-flash (Free Tier)", "gemini-1.5-pro"])
 area_size = st.text_input(t["area_size"])
 location = st.text_input(t["location"])
 harvest_time = st.text_input(t["harvest_time"])
