@@ -82,9 +82,10 @@ with st.sidebar:
     api_key = st.text_input(t["api_key"], type="password")
     # Updated model map to include specific versions to avoid 404 errors
     model_map = {
-        "gemini-1.5-flash (Free Tier)": "gemini-1.5-flash-001",
-        "gemini-1.5-pro": "gemini-1.5-pro-001",
-        "gemini-1.0-pro": "gemini-1.0-pro"
+        "gemini-2.0-flash (Recommended)": "gemini-2.0-flash",
+        "gemini-2.0-flash-lite": "gemini-2.0-flash-lite",
+        "gemini-2.0-pro-exp": "gemini-2.0-pro-exp",
+        "gemini-1.5-flash": "gemini-1.5-flash",
     }
 
     selected_model_label = st.selectbox(
