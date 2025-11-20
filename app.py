@@ -80,9 +80,12 @@ t = translations[st.session_state.language]
 with st.sidebar:
     st.title(t["sidebar_title"])
     api_key = st.text_input(t["api_key"], type="password")
+    # Updated model map to include specific versions to avoid 404 errors
     model_map = {
-        "gemini-1.5-flash (Free Tier)": "gemini-1.5-flash",
-        "gemini-1.5-pro": "gemini-1.5-pro",
+        "gemini-1.5-flash (Free Tier)": "gemini-1.5-flash-latest",
+        "gemini-1.5-flash-001": "gemini-1.5-flash-001",
+        "gemini-1.5-pro": "gemini-1.5-pro-latest",
+        "gemini-1.5-pro-001": "gemini-1.5-pro-001",
         "gemini-1.0-pro": "gemini-1.0-pro"
     }
 
@@ -92,6 +95,19 @@ with st.sidebar:
         index=0
     )
     gemini_model_name = model_map[selected_model_label]
+
+    # Debug tool to list available models
+    if st.button("🔍 Check Available Models (Debug)"):
+        if not api_key:
+            st.error(t["error_api_key"])
+        else:
+            try:
+                genai.configure(api_key=api_key)
+                models = list(genai.list_models())
+                model_names = [m.name for m in models if 'generateContent' in m.supported_generation_methods]
+                st.success(f"Available Models: {model_names}")
+            except Exception as e:
+                st.error(f"Error listing models: {e}")
 
     st.subheader(t["context_data"])
     area_size = st.text_input(t["area_size"], value="1.0")
