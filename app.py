@@ -80,11 +80,32 @@ t = translations[st.session_state.language]
 with st.sidebar:
     st.title(t["sidebar_title"])
     api_key = st.text_input(t["api_key"], type="password")
-    gemini_model_name = st.selectbox(
+    # Updated model map to include specific versions to avoid 404 errors
+    model_map = {
+        "gemini-1.5-flash (Free Tier)": "gemini-1.5-flash",
+        "gemini-1.5-pro": "gemini-1.5-pro",
+        "gemini-1.0-pro": "gemini-1.0-pro"
+    }
+
+    selected_model_label = st.selectbox(
         t["gemini_model"],
-        ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-1.0-pro"],
+        list(model_map.keys()),
         index=0
     )
+    gemini_model_name = model_map[selected_model_label]
+
+    # Debug tool to list available models
+    if st.button("🔍 Check Available Models (Debug)"):
+        if not api_key:
+            st.error(t["error_api_key"])
+        else:
+            try:
+                genai.configure(api_key=api_key)
+                models = list(genai.list_models())
+                model_names = [m.name for m in models if 'generateContent' in m.supported_generation_methods]
+                st.success(f"Available Models: {model_names}")
+            except Exception as e:
+                st.error(f"Error listing models: {e}")
 
     st.subheader(t["context_data"])
     area_size = st.text_input(t["area_size"], value="1.0")
@@ -102,6 +123,11 @@ with st.sidebar:
         st.session_state.implementation_plan = edited_df
     else:
         st.info(t["manage_empty"])
+
+    st.divider()
+    st.markdown("### Tests")
+    if st.button("🧪 Test: Fruits/Tubers/Legumes Schedule"):
+        st.session_state.test_prompt = "Crie um cronograma para uma agrofloresta com predominância de frutas mas que também tenha tubérculos e legumes."
 
 # --- Data Loading ---
 
@@ -228,7 +254,14 @@ for msg in st.session_state.history:
                 render_chart(part.function_response.name, part.function_response.response["result"])
 
 # Input Area
-if prompt := st.chat_input(t["placeholder"]):
+prompt = st.chat_input(t["placeholder"])
+
+# Handle Test Prompt Injection
+if "test_prompt" in st.session_state and st.session_state.test_prompt:
+    prompt = st.session_state.test_prompt
+    del st.session_state.test_prompt
+
+if prompt:
     if not api_key:
         st.error(t["error_api_key"])
         st.stop()
@@ -299,15 +332,27 @@ if prompt := st.chat_input(t["placeholder"]):
             # Now render the new messages
             for i in range(old_len, len(chat.history)):
                 msg = chat.history[i]
-                if msg.role == "model": # Only render model actions
-                    for part in msg.parts:
-                        if part.text:
-                            st.markdown(part.text)
-                        if part.function_call:
-                            with st.expander(f"Using tool: {part.function_call.name}"):
-                                st.write("Processing...")
-                        if part.function_response:
-                             render_chart(part.function_response.name, part.function_response.response["result"])
+                # Render model messages (text, function_calls) AND function messages (function_response)
+                # Note: In some SDK versions, the function_response is in a separate message with role='function'
+                # or contained within parts. We check all.
+
+                # Determine role for UI grouping (user vs assistant)
+                # Function responses are technical, usually hidden or shown as system/assistant data.
+                # Here we group them with assistant or just render them.
+
+                if msg.role == "user":
+                    # We already rendered the user prompt above, but if the loop added more user-like messages (unlikely in auto-mode), ignore or handle.
+                    continue
+
+                # Render Model or Function parts
+                for part in msg.parts:
+                    if part.text:
+                        st.markdown(part.text)
+                    if part.function_call:
+                        with st.expander(f"🤖 Using tool: {part.function_call.name}"):
+                            st.code(part.function_call.args)
+                    if part.function_response:
+                            render_chart(part.function_response.name, part.function_response.response["result"])
 
         except Exception as e:
             st.error(f"Error: {e}")
