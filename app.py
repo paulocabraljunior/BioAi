@@ -82,8 +82,8 @@ with st.sidebar:
     api_key = st.text_input(t["api_key"], type="password")
     # Updated model map to include specific versions to avoid 404 errors
     model_map = {
-        "gemini-1.5-flash (Free Tier)": "gemini-1.5-flash",
-        "gemini-1.5-pro": "gemini-1.5-pro",
+        "gemini-1.5-flash (Free Tier)": "gemini-1.5-flash-001",
+        "gemini-1.5-pro": "gemini-1.5-pro-001",
         "gemini-1.0-pro": "gemini-1.0-pro"
     }
 
@@ -125,9 +125,18 @@ with st.sidebar:
         st.info(t["manage_empty"])
 
     st.divider()
-    st.markdown("### Tests")
-    if st.button("🧪 Test: Fruits/Tubers/Legumes Schedule"):
-        st.session_state.test_prompt = "Crie um cronograma para uma agrofloresta com predominância de frutas mas que também tenha tubérculos e legumes."
+    if st.button("📡 Test Model Connection"):
+        if not api_key:
+            st.error(t["error_api_key"])
+        else:
+            try:
+                genai.configure(api_key=api_key)
+                # Use the selected model to test connection
+                model_test = genai.GenerativeModel(model_name=gemini_model_name)
+                response = model_test.generate_content("Hello, are you online?")
+                st.success(f"✅ Connection Successful! Model replied: {response.text}")
+            except Exception as e:
+                st.error(f"❌ Connection Failed: {e}")
 
 # --- Data Loading ---
 
