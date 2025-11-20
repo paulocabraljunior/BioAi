@@ -4,6 +4,7 @@ import google.generativeai as genai
 import altair as alt
 from io import StringIO
 import re
+import csv
 
 # Page configuration
 st.set_page_config(page_title="BioAI", layout="wide")
@@ -113,7 +114,7 @@ user_request = st.text_area(t["request"])
 @st.cache_data
 def load_data():
     try:
-        df = pd.read_csv("data.csv", sep=";")
+        df = pd.read_csv("data.csv", sep=";", quoting=csv.QUOTE_ALL)
         return df
     except Exception as e:
         st.error(f"Erro ao carregar data.csv: {e}")
@@ -137,11 +138,6 @@ def generate_schedule(api_key, gemini_model, user_request, df, area_size, locati
         4.  **Probabilidade de Rendimento:** Um bloco de código CSV com as colunas: `Planta`, `Probabilidade (%)`, `Fatores`.
         5.  **Previsão de Produção:** Um bloco de código CSV com as colunas: `Planta`, `Produção (kg/hectare)`.
         6.  **Regeneração do Solo:** Um bloco de código CSV com as colunas: `Indicador`, `Valor Inicial`, `Valor Final`.
-
-        **Dados Adicionais:**
-        *   Tamanho da área: {area_size} hectares
-        *   Localização: {location}
-        *   Tempo esperado de colheita: {harvest_time} meses
 
         **Dados Adicionais:**
         *   Tamanho da área: {area_size} hectares
