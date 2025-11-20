@@ -2,108 +2,108 @@ import streamlit as st
 import pandas as pd
 import google.generativeai as genai
 import altair as alt
-from io import StringIO
-import re
+import json
 import csv
+from google.ai.generativelanguage_v1beta.types import content
 
 # Page configuration
 st.set_page_config(page_title="BioAI", layout="wide")
 
-# Language selection
-col1, col2, col3 = st.columns(3)
-with col1:
-    if st.button("🇧🇷 Português"):
-        st.session_state.language = "pt"
-with col2:
-    if st.button("🇪🇸 Español"):
-        st.session_state.language = "es"
-with col3:
-    if st.button("🇬🇧 English"):
-        st.session_state.language = "en"
+# --- Language & Translations ---
 
-# Translations
-translations = {
-    "pt": {
-        "title": "BioAI: Agrofloresta Inteligente",
-        "description": "Esta ferramenta utiliza a IA do Google Gemini para gerar uma Agrofloresta específica para o bioma Amazônico.",
-        "description": "Esta ferramenta utiliza a IA do Google O Gemini para gerar uma Agrofloresta específica para o bioma Amazônico",
-        "api_key": "Chave da API do Google Gemini",
-        "gemini_model": "Escolha o modelo Gemini",
-        "area_size": "Tamanho da área (em hectares)",
-        "location": "Localização (cidade/estado)",
-        "harvest_time": "Tempo esperado de colheita (em meses)",
-        "request": "Descreva sua solicitação",
-        "generate_schedule": "Gerar Cronograma",
-        "schedule_title": "Cronograma de Cultivo Gerado",
-        "error_api_key": "Por favor, insira sua chave de API do Google Gemini.",
-        "error_request": "Por favor, descreva sua solicitação.",
-        "chart_title": "Visualização do Cronograma",
-        "chart_warning": "Não foi possível encontrar uma tabela de cronograma na resposta.",
-        "chart_columns_warning": "A tabela de cronograma na resposta não tem as colunas esperadas.",
-        "chart_generation_warning": "Não foi possível gerar o gráfico a partir da resposta:"
-    },
-    "es": {
-        "title": "BioAI: Agroforestería Inteligente",
-        "description": "Esta herramienta utiliza la IA de Google O Gemini para generar una Agroforestería específica para el bioma Amazónico",
-        "api_key": "Clave de API de Google Gemini",
-        "gemini_model": "Elige el modelo Gemini",
-        "area_size": "Tamaño del área (en hectáreas)",
-        "location": "Ubicación (ciudad/estado)",
-        "harvest_time": "Tiempo de cosecha esperado (en meses)",
-        "request": "Describe tu solicitud",
-        "generate_schedule": "Generar Calendario",
-        "schedule_title": "Calendario de Cultivo Generado",
-        "error_api_key": "Por favor, introduce tu clave de API de Google Gemini.",
-        "error_request": "Por favor, describe tu solicitud.",
-        "chart_title": "Visualización del Calendario",
-        "chart_warning": "No se pudo encontrar una tabla de calendario en la respuesta.",
-        "chart_columns_warning": "La tabla de calendario en la respuesta no tiene las columnas esperadas.",
-        "chart_generation_warning": "No se pudo generar el gráfico a partir de la respuesta:"
-    },
-    "en": {
-        "title": "BioAI: Smart Agroforestry",
-        "description": "This tool uses Google's Gemini AI to generate a specific Agroforestry for the Amazon biome",
-        "api_key": "Google Gemini API Key",
-        "gemini_model": "Choose the Gemini model",
-        "area_size": "Area size (in hectares)",
-        "location": "Location (city/state)",
-        "harvest_time": "Expected harvest time (in months)",
-        "request": "Describe your request",
-        "generate_schedule": "Generate Schedule",
-        "schedule_title": "Generated Cultivation Schedule",
-        "error_api_key": "Please enter your Google Gemini API key.",
-        "error_request": "Please describe your request.",
-        "chart_title": "Schedule Visualization",
-        "chart_warning": "Could not find a schedule table in the response.",
-        "chart_columns_warning": "The schedule table in the response does not have the expected columns.",
-        "chart_generation_warning": "Could not generate the chart from the response:"
-    }
-}
-
-# Set default language if not set
 if "language" not in st.session_state:
     st.session_state.language = "pt"
 
-# Get translated text
+col1, col2, col3 = st.sidebar.columns(3)
+with col1:
+    if st.button("🇧🇷"): st.session_state.language = "pt"
+with col2:
+    if st.button("🇪🇸"): st.session_state.language = "es"
+with col3:
+    if st.button("🇬🇧"): st.session_state.language = "en"
+
+translations = {
+    "pt": {
+        "title": "BioAI: Agrofloresta Inteligente",
+        "description": "Agente especialista em sistemas agroflorestais amazônicos.",
+        "api_key": "Chave da API do Google Gemini",
+        "gemini_model": "Modelo Gemini",
+        "context_data": "Dados do Projeto",
+        "area_size": "Área (hectares)",
+        "location": "Localização",
+        "harvest_time": "Tempo (meses)",
+        "intro_msg": "Olá! Sou seu assistente especialista em Agrofloresta. Posso gerar cronogramas, analisar parcerias de plantas, criar tabelas e ajudar na gestão da implantação. Como posso ajudar hoje?",
+        "placeholder": "Ex: Crie um cronograma para plantar mandioca e açaí...",
+        "sidebar_title": "Configurações & Contexto",
+        "manage_tab": "Gerenciar Implantação",
+        "manage_empty": "Nenhum plano de implantação criado ainda. Peça ao agente para criar um checklist.",
+        "error_api_key": "⚠️ Insira a chave da API para começar."
+    },
+    "es": {
+        "title": "BioAI: Agroforestería Inteligente",
+        "description": "Agente especialista en sistemas agroforestales amazónicos.",
+        "api_key": "Clave API Google Gemini",
+        "gemini_model": "Modelo Gemini",
+        "context_data": "Datos del Proyecto",
+        "area_size": "Área (hectáreas)",
+        "location": "Ubicación",
+        "harvest_time": "Tiempo (meses)",
+        "intro_msg": "¡Hola! Soy tu asistente especialista en Agroforestería. Puedo generar calendarios, analizar asociaciones de plantas, crear tablas y ayudar en la gestión de la implementación. ¿Cómo puedo ayudar hoy?",
+        "placeholder": "Ej: Crea un calendario para plantar yuca y açaí...",
+        "sidebar_title": "Configuración y Contexto",
+        "manage_tab": "Gestionar Implementación",
+        "manage_empty": "Aún no se ha creado ningún plan de implementación. Pídele al agente que cree una lista de verificación.",
+        "error_api_key": "⚠️ Ingrese la clave API para comenzar."
+    },
+    "en": {
+        "title": "BioAI: Smart Agroforestry",
+        "description": "Specialist agent in Amazonian agroforestry systems.",
+        "api_key": "Google Gemini API Key",
+        "gemini_model": "Gemini Model",
+        "context_data": "Project Data",
+        "area_size": "Area (hectares)",
+        "location": "Location",
+        "harvest_time": "Time (months)",
+        "intro_msg": "Hello! I am your Agroforestry specialist assistant. I can generate schedules, analyze plant partnerships, create tables, and help manage implementation. How can I help you today?",
+        "placeholder": "Ex: Create a schedule for planting cassava and acai...",
+        "sidebar_title": "Settings & Context",
+        "manage_tab": "Manage Implementation",
+        "manage_empty": "No implementation plan created yet. Ask the agent to create a checklist.",
+        "error_api_key": "⚠️ Enter API Key to start."
+    }
+}
+
 t = translations[st.session_state.language]
 
-# Title and description
-st.title(t["title"])
-st.markdown(t["description"])
+# --- Sidebar Inputs ---
 
+with st.sidebar:
+    st.title(t["sidebar_title"])
+    api_key = st.text_input(t["api_key"], type="password")
+    gemini_model_name = st.selectbox(
+        t["gemini_model"],
+        ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-1.0-pro"],
+        index=0
+    )
 
-# API Key and Gemini Model selection
-api_key = st.text_input(t["api_key"], type="password")
-gemini_model = st.selectbox(t["gemini_model"], ["gemini-pro", "gemini-1.0-pro", "gemini-1.5-flash (Free Tier)", "gemini-1.5-pro"])
-area_size = st.text_input(t["area_size"])
-location = st.text_input(t["location"])
-harvest_time = st.text_input(t["harvest_time"])
+    st.subheader(t["context_data"])
+    area_size = st.text_input(t["area_size"], value="1.0")
+    location = st.text_input(t["location"], value="Amazonas")
+    harvest_time = st.text_input(t["harvest_time"], value="12")
 
+    st.divider()
+    st.markdown("### " + t["manage_tab"])
+    if "implementation_plan" in st.session_state and not st.session_state.implementation_plan.empty:
+        edited_df = st.data_editor(
+            st.session_state.implementation_plan,
+            num_rows="dynamic",
+            key="editor"
+        )
+        st.session_state.implementation_plan = edited_df
+    else:
+        st.info(t["manage_empty"])
 
-# User request
-user_request = st.text_area(t["request"])
-
-# --- Main Logic ---
+# --- Data Loading ---
 
 @st.cache_data
 def load_data():
@@ -111,213 +111,203 @@ def load_data():
         df = pd.read_csv("data.csv", sep=";", quoting=csv.QUOTE_ALL)
         return df
     except Exception as e:
-        st.error(f"Erro ao carregar data.csv: {e}")
         return None
 
-def generate_schedule(api_key, gemini_model, user_request, df, area_size, location, harvest_time):
+df_data = load_data()
+
+# --- Tools Definition ---
+
+def plot_cultivation_schedule(events: list[dict]):
+    """
+    Generates a Gantt chart for the cultivation schedule.
+    Args:
+        events: List of dicts, each containing 'activity' (str), 'plant' (str), 'start_date' (str YYYY-MM-DD), 'end_date' (str YYYY-MM-DD).
+    """
+    return json.dumps(events)
+
+def plot_yield_probability(data: list[dict]):
+    """
+    Generates a bar chart for yield probability.
+    Args:
+        data: List of dicts with 'plant' (str), 'probability' (int 0-100), 'factors' (str).
+    """
+    return json.dumps(data)
+
+def plot_production_forecast(data: list[dict]):
+    """
+    Generates a chart for production forecast.
+    Args:
+        data: List of dicts with 'plant' (str), 'production_kg_ha' (float).
+    """
+    return json.dumps(data)
+
+def create_implementation_checklist(tasks: list[str]):
+    """
+    Creates an interactive checklist for the implementation plan which is displayed in the sidebar.
+    Args:
+        tasks: List of strings describing the tasks to be done.
+    """
+    # Update session state directly as a side effect, but return JSON for the log
+    df = pd.DataFrame({"Task": tasks, "Done": [False] * len(tasks)})
+    # We can't easily update session state from a tool running in a vacuum if using parallel threads,
+    # but in Streamlit/Gemini sync execution, this works if we handle it in the loop.
+    # For now, return data.
+    return json.dumps(tasks)
+
+tools_map = {
+    "plot_cultivation_schedule": plot_cultivation_schedule,
+    "plot_yield_probability": plot_yield_probability,
+    "plot_production_forecast": plot_production_forecast,
+    "create_implementation_checklist": create_implementation_checklist
+}
+
+available_tools = [plot_cultivation_schedule, plot_yield_probability, plot_production_forecast, create_implementation_checklist]
+
+# --- Main UI ---
+
+st.title(t["title"])
+st.caption(t["description"])
+
+# Initialize Chat History
+if "history" not in st.session_state:
+    st.session_state.history = []
+    # Add initial system greeting
+    st.session_state.history.append(
+        content.Content(role="model", parts=[content.Part(text=t["intro_msg"])])
+    )
+
+# Helper to Render History
+def render_chart(tool_name, data_json):
     try:
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel(gemini_model)
-        prompt = f"""
-        **Instruções para o Modelo de Linguagem:**
-        Você é um assistente de IA especializado em agrofloresta amazônica.
+        data = json.loads(data_json)
 
-        **Tarefa:**
-        Com base nos dados fornecidos e na solicitação do usuário, crie um cronograma de cultivo detalhado e sugira parcerias entre plantas.
+        if tool_name == "plot_cultivation_schedule":
+            df = pd.DataFrame(data)
+            df['start_date'] = pd.to_datetime(df['start_date'])
+            df['end_date'] = pd.to_datetime(df['end_date'])
+            c = alt.Chart(df).mark_bar().encode(
+                x='start_date', x2='end_date', y='plant', color='activity'
+            ).properties(title="Cronograma")
+            st.altair_chart(c, use_container_width=True)
 
-        **Formato de Saída OBRIGATÓRIO (use CSV):**
-        1.  **Parcerias Recomendadas:** Uma breve análise das parcerias de plantas.
-        2.  **Cronograma de Cultivo:** Um bloco de código CSV com as colunas: `Atividade`, `Planta`, `Início`, `Fim`.
-        3.  **Desenvolvimento dos Cultivos:** Um bloco de código CSV com as colunas: `Planta`, `Estágio`, `Duração (dias)`.
-        4.  **Probabilidade de Rendimento:** Um bloco de código CSV com as colunas: `Planta`, `Probabilidade (%)`, `Fatores`.
-        5.  **Previsão de Produção:** Um bloco de código CSV com as colunas: `Planta`, `Produção (kg/hectare)`.
-        6.  **Regeneração do Solo:** Um bloco de código CSV com as colunas: `Indicador`, `Valor Inicial`, `Valor Final`.
+        elif tool_name == "plot_yield_probability":
+            df = pd.DataFrame(data)
+            c = alt.Chart(df).mark_bar().encode(
+                x='probability', y='plant', tooltip='factors'
+            ).properties(title="Probabilidade de Rendimento (%)")
+            st.altair_chart(c, use_container_width=True)
 
-        **Dados Adicionais:**
-        *   Tamanho da área: {area_size} hectares
-        *   Localização: {location}
-        *   Tempo esperado de colheita: {harvest_time} meses
+        elif tool_name == "plot_production_forecast":
+            df = pd.DataFrame(data)
+            c = alt.Chart(df).mark_bar().encode(
+                x='production_kg_ha', y='plant'
+            ).properties(title="Produção Estimada (kg/ha)")
+            st.altair_chart(c, use_container_width=True)
 
-        **Conjunto de Dados:**
-        ```
-        {df.to_string()}
-        ```
-
-        **Solicitação do Usuário:**
-        ```
-        {user_request}
-        ```
-        """
-        response = model.generate_content(prompt)
-        return response.text
-    except Exception as e:
-        st.error(f"Ocorreu um erro na API Gemini: {e}")
-        return None
-
-def parse_and_display_chart(response_text):
-    st.subheader(t["chart_title"])
-    try:
-        # Use a more robust regex to find the CSV block, making the language identifier optional
-        csv_match = re.search(r"Cronograma de Cultivo:\s*```(?:csv)?\s*\n(.*?)\n```", response_text, re.DOTALL)
-        if not csv_match:
-            st.warning(t["chart_warning"])
-            return
-
-        csv_data = csv_match.group(1)
-        schedule_df = pd.read_csv(StringIO(csv_data))
-
-        # Data validation
-        if not all(col in schedule_df.columns for col in ["Atividade", "Planta", "Início", "Fim"]):
-            st.warning(t["chart_columns_warning"])
-            return
-
-        schedule_df["Início"] = pd.to_datetime(schedule_df["Início"])
-        schedule_df["Fim"] = pd.to_datetime(schedule_df["Fim"])
-
-        chart = alt.Chart(schedule_df).mark_bar().encode(
-            x='Início',
-            x2='Fim',
-            y=alt.Y('Planta', sort=None),
-            color=alt.Color('Atividade', scale=alt.Scale(scheme='category10'))
-        ).properties(
-            title=t["schedule_title"]
-        )
-        st.altair_chart(chart, use_container_width=True)
-
-    except Exception as e:
-        st.warning(f"{t['chart_generation_warning']} {e}")
-
-
-def parse_and_display_development_chart(response_text):
-    st.subheader("Desenvolvimento dos Cultivos")
-    try:
-        csv_match = re.search(r"Desenvolvimento dos Cultivos:\s*```(?:csv)?\s*\n(.*?)\n```", response_text, re.DOTALL)
-        if not csv_match:
-            st.warning("Não foi possível encontrar dados de desenvolvimento dos cultivos na resposta.")
-            return
-
-        csv_data = csv_match.group(1)
-        df = pd.read_csv(StringIO(csv_data))
-
-        if not all(col in df.columns for col in ["Planta", "Estágio", "Duração (dias)"]):
-            st.warning("A tabela de desenvolvimento dos cultivos não tem as colunas esperadas.")
-            return
-
-        chart = alt.Chart(df).mark_bar().encode(
-            x='sum(Duração (dias))',
-            y='Planta',
-            color='Estágio'
-        ).properties(
-            title="Fases de Desenvolvimento dos Cultivos"
-        )
-        st.altair_chart(chart, use_container_width=True)
-
-    except Exception as e:
-        st.warning(f"Não foi possível gerar o gráfico de desenvolvimento: {e}")
-
-
-def parse_and_display_yield_chart(response_text):
-    st.subheader("Probabilidade de Rendimento")
-    try:
-        csv_match = re.search(r"Probabilidade de Rendimento:\s*```(?:csv)?\s*\n(.*?)\n```", response_text, re.DOTALL)
-        if not csv_match:
-            st.warning("Não foi possível encontrar dados de probabilidade de rendimento na resposta.")
-            return
-
-        csv_data = csv_match.group(1)
-        df = pd.read_csv(StringIO(csv_data))
-
-        if not all(col in df.columns for col in ["Planta", "Probabilidade (%)", "Fatores"]):
-            st.warning("A tabela de probabilidade de rendimento não tem as colunas esperadas.")
-            return
-
-        chart = alt.Chart(df).mark_bar().encode(
-            x='Probabilidade (%)',
-            y='Planta',
-            tooltip=['Fatores']
-        ).properties(
-            title="Probabilidade de Rendimento por Cultura"
-        )
-        st.altair_chart(chart, use_container_width=True)
+        elif tool_name == "create_implementation_checklist":
+            st.success("Checklist created! Check the Sidebar to manage it.")
+            # Also update the sidebar state if not already done
+            if "implementation_plan" not in st.session_state or st.session_state.implementation_plan.empty:
+                 st.session_state.implementation_plan = pd.DataFrame({"Task": data, "Done": [False]*len(data)})
 
     except Exception as e:
-        st.warning(f"Não foi possível gerar o gráfico de probabilidade de rendimento: {e}")
+        st.error(f"Error rendering chart: {e}")
 
+# Display Chat
+for msg in st.session_state.history:
+    role = "user" if msg.role == "user" else "assistant"
+    with st.chat_message(role):
+        for part in msg.parts:
+            if part.text:
+                st.markdown(part.text)
+            if part.function_call:
+                with st.expander(f"🤖 Using tool: {part.function_call.name}"):
+                    st.code(part.function_call.args)
+            if part.function_response:
+                # Render the result of the tool
+                render_chart(part.function_response.name, part.function_response.response["result"])
 
-def parse_and_display_production_chart(response_text):
-    st.subheader("Previsão de Produção")
-    try:
-        csv_match = re.search(r"Previsão de Produção:\s*```(?:csv)?\s*\n(.*?)\n```", response_text, re.DOTALL)
-        if not csv_match:
-            st.warning("Não foi possível encontrar dados de previsão de produção na resposta.")
-            return
-
-        csv_data = csv_match.group(1)
-        df = pd.read_csv(StringIO(csv_data))
-
-        if not all(col in df.columns for col in ["Planta", "Produção (kg/hectare)"]):
-            st.warning("A tabela de previsão de produção não tem as colunas esperadas.")
-            return
-
-        chart = alt.Chart(df).mark_bar().encode(
-            x='Produção (kg/hectare)',
-            y='Planta'
-        ).properties(
-            title="Previsão de Produção por Cultura"
-        )
-        st.altair_chart(chart, use_container_width=True)
-
-    except Exception as e:
-        st.warning(f"Não foi possível gerar o gráfico de previsão de produção: {e}")
-
-
-def parse_and_display_soil_chart(response_text):
-    st.subheader("Regeneração do Solo")
-    try:
-        csv_match = re.search(r"Regeneração do Solo:\s*```(?:csv)?\s*\n(.*?)\n```", response_text, re.DOTALL)
-        if not csv_match:
-            st.warning("Não foi possível encontrar dados de regeneração do solo na resposta.")
-            return
-
-        csv_data = csv_match.group(1)
-        df = pd.read_csv(StringIO(csv_data))
-
-        if not all(col in df.columns for col in ["Indicador", "Valor Inicial", "Valor Final"]):
-            st.warning("A tabela de regeneração do solo não tem as colunas esperadas.")
-            return
-
-        df_melted = df.melt(id_vars=['Indicador'], value_vars=['Valor Inicial', 'Valor Final'],
-                            var_name='Estágio', value_name='Valor')
-
-        chart = alt.Chart(df_melted).mark_bar().encode(
-            x='Indicador',
-            y='Valor',
-            color='Estágio'
-        ).properties(
-            title="Previsão de Regeneração do Solo"
-        )
-        st.altair_chart(chart, use_container_width=True)
-
-    except Exception as e:
-        st.warning(f"Não foi possível gerar o gráfico de regeneração do solo: {e}")
-
-
-# --- Button Logic ---
-
-if st.button(t["generate_schedule"]):
+# Input Area
+if prompt := st.chat_input(t["placeholder"]):
     if not api_key:
         st.error(t["error_api_key"])
-    elif not user_request:
-        st.error(t["error_request"])
-    else:
-        df = load_data()
-        if df is not None:
-            response_text = generate_schedule(api_key, gemini_model, user_request, df, area_size, location, harvest_time)
-            if response_text:
-                st.subheader(t["schedule_title"])
-                st.markdown(response_text)
-                parse_and_display_chart(response_text)
-                parse_and_display_development_chart(response_text)
-                parse_and_display_yield_chart(response_text)
-                parse_and_display_production_chart(response_text)
-                parse_and_display_soil_chart(response_text)
+        st.stop()
+
+    # Add User Message
+    user_msg = content.Content(role="user", parts=[content.Part(text=prompt)])
+    st.session_state.history.append(user_msg)
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    # Generate Response
+    with st.chat_message("assistant"):
+        try:
+            genai.configure(api_key=api_key)
+            # Map display name to ID if needed, or use direct
+            # User handles specific model ID in sidebar
+
+            model = genai.GenerativeModel(
+                model_name=gemini_model_name,
+                tools=available_tools,
+                system_instruction=f"""
+                Você é um especialista em agrofloresta.
+                Use os dados fornecidos abaixo para ajudar o usuário.
+                Sempre use as tools disponíveis para visualizar dados (gráficos e checklists) quando solicitado ou quando apropriado para enriquecer a resposta.
+
+                Dados do Contexto:
+                - Área: {area_size} ha
+                - Local: {location}
+                - Tempo: {harvest_time} meses
+
+                Dataset de Plantas:
+                {df_data.to_string() if df_data is not None else 'N/A'}
+                """
+            )
+
+            chat = model.start_chat(history=st.session_state.history)
+
+            # Send message with automatic function calling disabled to handle manual rendering?
+            # No, let's try automatic. But automatic execution doesn't return the INTERMEDIATE steps easily for rendering *during* the loop in Streamlit unless we control the loop.
+            # To properly render charts in the chat stream, we should manually handle the loop.
+
+            response = chat.send_message(prompt, tool_config={'function_calling_config': 'AUTO'})
+
+            # The response object contains the FINAL text, but `chat.history` contains the intermediate tool calls.
+            # We need to extract the NEW messages from chat.history and append them to our session state history.
+
+            # Problem: `chat.send_message` executes everything on the server side (if using newer library features) OR
+            # returns a FunctionCall part if NOT using auto-execution.
+            # Default behavior of `genai` Python SDK is NOT auto-execution unless enabled?
+            # Wait, memory says "google-generativeai==0.8.5".
+            # In 0.8.5, `enable_automatic_function_calling` is an option in `start_chat`.
+
+            # If I use `enable_automatic_function_calling=True`, the SDK runs the function.
+            # But my functions return JSON strings. The SDK sends that back to Gemini.
+            # Gemini then generates text.
+            # The intermediate "Plot this" step is HIDDEN from the `response.text`.
+            # BUT, `chat.history` will have the record.
+
+            # So:
+            # 1. Run query.
+            # 2. Update st.session_state.history with new items from chat.history.
+            # 3. Re-render the NEW items immediately so the user sees the chart.
+
+            # We need to identify which messages are new.
+            old_len = len(st.session_state.history)
+            st.session_state.history = chat.history
+
+            # Now render the new messages
+            for i in range(old_len, len(chat.history)):
+                msg = chat.history[i]
+                if msg.role == "model": # Only render model actions
+                    for part in msg.parts:
+                        if part.text:
+                            st.markdown(part.text)
+                        if part.function_call:
+                            with st.expander(f"Using tool: {part.function_call.name}"):
+                                st.write("Processing...")
+                        if part.function_response:
+                             render_chart(part.function_response.name, part.function_response.response["result"])
+
+        except Exception as e:
+            st.error(f"Error: {e}")
