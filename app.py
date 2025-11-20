@@ -82,10 +82,8 @@ with st.sidebar:
     api_key = st.text_input(t["api_key"], type="password")
     # Updated model map to include specific versions to avoid 404 errors
     model_map = {
-        "gemini-1.5-flash (Free Tier)": "gemini-1.5-flash-latest",
-        "gemini-1.5-flash-001": "gemini-1.5-flash-001",
-        "gemini-1.5-pro": "gemini-1.5-pro-latest",
-        "gemini-1.5-pro-001": "gemini-1.5-pro-001",
+        "gemini-1.5-flash (Free Tier)": "gemini-1.5-flash",
+        "gemini-1.5-pro": "gemini-1.5-pro",
         "gemini-1.0-pro": "gemini-1.0-pro"
     }
 
@@ -125,6 +123,11 @@ with st.sidebar:
         st.session_state.implementation_plan = edited_df
     else:
         st.info(t["manage_empty"])
+
+    st.divider()
+    st.markdown("### Tests")
+    if st.button("🧪 Test: Fruits/Tubers/Legumes Schedule"):
+        st.session_state.test_prompt = "Crie um cronograma para uma agrofloresta com predominância de frutas mas que também tenha tubérculos e legumes."
 
 # --- Data Loading ---
 
@@ -251,7 +254,14 @@ for msg in st.session_state.history:
                 render_chart(part.function_response.name, part.function_response.response["result"])
 
 # Input Area
-if prompt := st.chat_input(t["placeholder"]):
+prompt = st.chat_input(t["placeholder"])
+
+# Handle Test Prompt Injection
+if "test_prompt" in st.session_state and st.session_state.test_prompt:
+    prompt = st.session_state.test_prompt
+    del st.session_state.test_prompt
+
+if prompt:
     if not api_key:
         st.error(t["error_api_key"])
         st.stop()
