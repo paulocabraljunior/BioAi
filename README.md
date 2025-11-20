@@ -1,70 +1,77 @@
-# BioAI: Assistente de Agrofloresta Inteligente
+# BioAI: Assistente de Agrofloresta Inteligente / Smart Agroforestry Assistant
 
 **Projeto de Finalização do Curso de Inteligência Artificial para Projetos Sustentáveis - Guardiões da Amazônia - I2A2**
 
-## Visão Geral
+## Visão Geral / Overview
 
-O BioAI é uma aplicação web de código aberto projetada para apoiar o planejamento e manejo de sistemas agroflorestais, com um foco especial na rica biodiversidade da Amazônia. Utilizando o poder dos modelos de linguagem avançados do Google, como o **Gemini**, esta ferramenta capacita agricultores, comunidades locais e pesquisadores a criar ecossistemas sustentáveis e produtivos.
+### Português
+O BioAI é uma aplicação web de código aberto projetada para apoiar o planejamento e manejo de sistemas agroflorestais, com um foco especial na biodiversidade da Amazônia. Utilizando o poder dos modelos de linguagem avançados do Google (**Gemini**), esta ferramenta atua como um agente especialista que capacita agricultores e pesquisadores a criar ecossistemas sustentáveis.
 
-A aplicação foi desenvolvida para ser uma ferramenta de apoio à regeneração de áreas degradadas, como margens de igarapés, contribuindo para a economia local e gerando segurança alimentar para a comunidade.
+### English
+BioAI is an open-source web application designed to support the planning and management of agroforestry systems, with a special focus on Amazonian biodiversity. Using the power of Google's advanced language models (**Gemini**), this tool acts as a specialist agent that empowers farmers and researchers to create sustainable ecosystems.
 
-## Funcionalidades Principais
+---
 
-*   **Geração de Cronograma com IA:** Crie cronogramas de cultivo detalhados e personalizados com base em suas necessidades, no tamanho da área, na localização e no tempo de colheita esperado.
-*   **Análises Preditivas:** Além do cronograma, o BioAI é capaz de gerar análises gráficas sobre:
-    *   **Desenvolvimento dos Cultivos:** Acompanhe as fases de crescimento de cada planta.
-    *   **Probabilidade de Rendimento:** Obtenha estimativas sobre a produtividade da sua colheita.
-    *   **Previsão de Produção:** Calcule a produção esperada com base na área plantada.
-    *   **Regeneração do Solo:** Receba uma previsão sobre a melhoria da saúde do solo com base nos cultivos selecionados.
-*   **Sugestões de Parceria de Plantas:** Receba recomendações inteligentes sobre quais plantas crescem bem juntas, otimizando o uso da terra e promovendo um ecossistema saudável e resiliente.
-*   **Visualização Interativa:** Visualize seu cronograma de cultivo em um gráfico de Gantt interativo, facilitando o acompanhamento das atividades ao longo do tempo.
-*   **Compatibilidade com Gemini Free Tier:** A ferramenta é totalmente funcional com o nível gratuito da API do Google Gemini, tornando-a acessível a todos.
-*   **Suporte Multilíngue:** A interface está disponível em português, espanhol e inglês.
+## Funcionalidades e Ferramentas do Agente / Agent Features and Tools
 
-## Como Executar o Projeto Localmente
+O sistema opera através de uma interface de chat onde um Agente Inteligente interage com o usuário. O Agente possui acesso a diversas ferramentas ("Tools") para gerar visualizações e gerenciar o projeto.
 
-Siga estas instruções para configurar e executar o BioAI em seu ambiente de desenvolvimento local.
+The system operates through a chat interface where an Intelligent Agent interacts with the user. The Agent has access to several "Tools" to generate visualizations and manage the project.
 
-### Pré-requisitos
+### 1. Interface de Chat Multilíngue / Multilingual Chat Interface
+- **PT:** O agente se apresenta e interage na língua selecionada (Português, Espanhol ou Inglês) através das bandeiras na barra lateral.
+- **EN:** The agent introduces itself and interacts in the selected language (Portuguese, Spanish, or English) via the flags in the sidebar.
 
-*   Python 3.8 ou superior
-*   `pip` (gerenciador de pacotes do Python)
+### 2. Ferramentas de Visualização / Visualization Tools
 
-### Instalação
+O agente pode invocar as seguintes funções automaticamente para gerar gráficos:
+The agent can automatically invoke the following functions to generate charts:
 
-1.  **Clone o repositório:**
+*   **`plot_cultivation_schedule`**
+    *   **PT:** Gera um gráfico de Gantt detalhado mostrando o cronograma de atividades (plantio, manejo, colheita) para cada planta ao longo do tempo.
+    *   **EN:** Generates a detailed Gantt chart showing the schedule of activities (planting, management, harvest) for each plant over time.
+
+*   **`plot_yield_probability`**
+    *   **PT:** Gera um gráfico de barras exibindo a probabilidade de sucesso (%) de cada cultura, incluindo fatores de risco ou benefício no *tooltip*.
+    *   **EN:** Generates a bar chart displaying the success probability (%) of each crop, including risk or benefit factors in the *tooltip*.
+
+*   **`plot_production_forecast`**
+    *   **PT:** Gera um gráfico estimando a produção em kg/hectare para as culturas selecionadas.
+    *   **EN:** Generates a chart estimating production in kg/hectare for the selected crops.
+
+### 3. Gestão de Implantação / Implementation Management
+
+*   **`create_implementation_checklist`**
+    *   **PT:** O agente pode criar uma lista de tarefas (checklist) para a implantação do sistema agroflorestal. Esta lista aparece na **Barra Lateral** (Sidebar) na aba "Gerenciar Implantação", onde o usuário pode marcar os itens conforme são concluídos.
+    *   **EN:** The agent can create a task list (checklist) for the implementation of the agroforestry system. This list appears in the **Sidebar** under the "Manage Implementation" tab, where the user can check off items as they are completed.
+
+---
+
+## Como Executar / How to Run
+
+### Pré-requisitos / Prerequisites
+*   Python 3.10+
+*   Google Gemini API Key
+
+### Instalação / Installation
+
+1.  **Clone o repositório / Clone the repository:**
     ```bash
     git clone https://github.com/paulocabraljunior/BioAi.git
     cd BioAi
     ```
 
-2.  **Crie e ative um ambiente virtual (recomendado):**
-    ```bash
-    python -m venv venv
-    source venv/bin/activate  # No Windows, use `venv\Scripts\activate`
-    ```
-
-3.  **Instale as dependências:**
-    O arquivo `requirements.txt` contém todas as bibliotecas necessárias com suas versões exatas para garantir a estabilidade.
+2.  **Instale as dependências / Install dependencies:**
     ```bash
     pip install -r requirements.txt
     ```
 
-### Execução
-
-1.  **Execute o aplicativo Streamlit:**
-    Navegue até o diretório do projeto e execute o seguinte comando no seu terminal:
+3.  **Execute a aplicação / Run the application:**
     ```bash
     streamlit run app.py
     ```
 
-2.  **Acesse no navegador:**
-    Após executar o comando, o Streamlit fornecerá um URL local (geralmente `http://localhost:8501`) que você pode abrir em seu navegador para interagir com o aplicativo.
+## Estrutura do Projeto / Project Structure
 
-## Arquitetura do Código
-
-O projeto é construído como um aplicativo de página única usando o Streamlit.
-
-*   **`app.py`:** O arquivo principal que contém toda a lógica da aplicação, desde a interface do usuário até a comunicação com a API do Gemini.
-*   **`data.csv`:** Um arquivo CSV que contém o conjunto de dados de plantas amazônicas, servindo como base de conhecimento para a IA.
-*   **`requirements.txt`:** Lista todas as dependências do projeto com suas versões fixadas, garantindo uma instalação consistente.
+*   **`app.py`:** Aplicação principal Streamlit contendo a lógica do Chat e definições das Tools.
+*   **`data.csv`:** Base de dados com informações sobre plantas amazônicas.
