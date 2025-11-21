@@ -14,13 +14,20 @@ st.set_page_config(page_title="BioAI", layout="wide")
 if "language" not in st.session_state:
     st.session_state.language = "pt"
 
+def set_language(lang):
+    st.session_state.language = lang
+    # If the history contains only the initial greeting (which is in the wrong language), clear it
+    # so it gets regenerated in the new language on the next run.
+    if "history" in st.session_state and len(st.session_state.history) <= 1:
+        del st.session_state["history"]
+
 col1, col2, col3 = st.sidebar.columns(3)
 with col1:
-    if st.button("🇧🇷"): st.session_state.language = "pt"
+    st.button("🇧🇷", on_click=set_language, args=["pt"])
 with col2:
-    if st.button("🇪🇸"): st.session_state.language = "es"
+    st.button("🇪🇸", on_click=set_language, args=["es"])
 with col3:
-    if st.button("🇬🇧"): st.session_state.language = "en"
+    st.button("🇬🇧", on_click=set_language, args=["en"])
 
 translations = {
     "pt": {
@@ -37,7 +44,8 @@ translations = {
         "sidebar_title": "Configurações & Contexto",
         "manage_tab": "Gerenciar Implantação",
         "manage_empty": "Nenhum plano de implantação criado ainda. Peça ao agente para criar um checklist.",
-        "error_api_key": "⚠️ Insira a chave da API para começar."
+        "error_api_key": "⚠️ Insira a chave da API para começar.",
+        "restart": "Reiniciar Conversa"
     },
     "es": {
         "title": "BioAI: Agroforestería Inteligente",
@@ -53,7 +61,8 @@ translations = {
         "sidebar_title": "Configuración y Contexto",
         "manage_tab": "Gestionar Implementación",
         "manage_empty": "Aún no se ha creado ningún plan de implementación. Pídele al agente que cree una lista de verificación.",
-        "error_api_key": "⚠️ Ingrese la clave API para comenzar."
+        "error_api_key": "⚠️ Ingrese la clave API para comenzar.",
+        "restart": "Reiniciar Conversación"
     },
     "en": {
         "title": "BioAI: Smart Agroforestry",
@@ -69,7 +78,8 @@ translations = {
         "sidebar_title": "Settings & Context",
         "manage_tab": "Manage Implementation",
         "manage_empty": "No implementation plan created yet. Ask the agent to create a checklist.",
-        "error_api_key": "⚠️ Enter API Key to start."
+        "error_api_key": "⚠️ Enter API Key to start.",
+        "restart": "Restart Chat"
     }
 }
 
@@ -139,6 +149,13 @@ with st.sidebar:
         st.info(t["manage_empty"])
 
     st.divider()
+    if st.button(t["restart"], type="primary"):
+        st.session_state.history = []
+        st.session_state.history.append(
+            content.Content(role="model", parts=[content.Part(text=t["intro_msg"])])
+        )
+        st.session_state.implementation_plan = pd.DataFrame()
+        st.rerun()
 
 # --- Data Loading ---
 
@@ -153,6 +170,18 @@ def load_data():
 df_data = load_data()
 
 # --- Tools Definition ---
+
+def parse_proto_args(obj):
+    """Recursively converts Protobuf MapComposite/RepeatedComposite to dict/list."""
+    if hasattr(obj, 'items'):
+        return {k: parse_proto_args(v) for k, v in obj.items()}
+    elif isinstance(obj, (list, tuple)) or hasattr(obj, '__iter__'):
+        # Exclude strings and bytes from iteration logic
+        if isinstance(obj, (str, bytes)):
+            return obj
+        return [parse_proto_args(x) for x in obj]
+    else:
+        return obj
 
 def plot_cultivation_schedule(events: list[dict]):
     """
@@ -259,8 +288,7 @@ for msg in st.session_state.history:
                 st.markdown(part.text)
             if part.function_call:
                 with st.expander(f"🤖 Using tool: {part.function_call.name}"):
-                    # Helper to convert MapComposite to dict for display
-                    args = dict(part.function_call.args)
+                    args = parse_proto_args(part.function_call.args)
                     st.code(json.dumps(args, indent=2))
             if part.function_response:
                 # Render the result of the tool
@@ -363,8 +391,7 @@ if prompt:
                         st.markdown(part.text)
                     if part.function_call:
                         with st.expander(f"🤖 Using tool: {part.function_call.name}"):
-                            # Helper to convert MapComposite to dict for display
-                            args = dict(part.function_call.args)
+                            args = parse_proto_args(part.function_call.args)
                             st.code(json.dumps(args, indent=2))
                     if part.function_response:
                             render_chart(part.function_response.name, part.function_response.response["result"])
