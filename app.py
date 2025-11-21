@@ -108,6 +108,19 @@ with st.sidebar:
             except Exception as e:
                 st.error(f"Error listing models: {e}")
 
+    if st.button("📡 Test Model Connection"):
+        if not api_key:
+            st.error(t["error_api_key"])
+        else:
+            try:
+                genai.configure(api_key=api_key)
+                # Use the selected model to test connection
+                model_test = genai.GenerativeModel(model_name=gemini_model_name)
+                response = model_test.generate_content("Hello, are you online?")
+                st.success(f"✅ Connection Successful! Model replied: {response.text}")
+            except Exception as e:
+                st.error(f"❌ Connection Failed: {e}")
+
     st.subheader(t["context_data"])
     area_size = st.text_input(t["area_size"], value="1.0")
     location = st.text_input(t["location"], value="Amazonas")
@@ -126,18 +139,6 @@ with st.sidebar:
         st.info(t["manage_empty"])
 
     st.divider()
-    if st.button("📡 Test Model Connection"):
-        if not api_key:
-            st.error(t["error_api_key"])
-        else:
-            try:
-                genai.configure(api_key=api_key)
-                # Use the selected model to test connection
-                model_test = genai.GenerativeModel(model_name=gemini_model_name)
-                response = model_test.generate_content("Hello, are you online?")
-                st.success(f"✅ Connection Successful! Model replied: {response.text}")
-            except Exception as e:
-                st.error(f"❌ Connection Failed: {e}")
 
 # --- Data Loading ---
 
@@ -258,7 +259,9 @@ for msg in st.session_state.history:
                 st.markdown(part.text)
             if part.function_call:
                 with st.expander(f"🤖 Using tool: {part.function_call.name}"):
-                    st.code(part.function_call.args)
+                    # Helper to convert MapComposite to dict for display
+                    args = dict(part.function_call.args)
+                    st.code(json.dumps(args, indent=2))
             if part.function_response:
                 # Render the result of the tool
                 render_chart(part.function_response.name, part.function_response.response["result"])
@@ -360,7 +363,9 @@ if prompt:
                         st.markdown(part.text)
                     if part.function_call:
                         with st.expander(f"🤖 Using tool: {part.function_call.name}"):
-                            st.code(part.function_call.args)
+                            # Helper to convert MapComposite to dict for display
+                            args = dict(part.function_call.args)
+                            st.code(json.dumps(args, indent=2))
                     if part.function_response:
                             render_chart(part.function_response.name, part.function_response.response["result"])
 
